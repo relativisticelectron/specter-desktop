@@ -130,6 +130,7 @@ def service_worker():
                      send_from_directory('static', filename='service_worker.js'))
     #change the content header file. Can also omit; flask will handle correctly.
     response.headers['Content-Type'] = 'text/javascript'
+    #response.headers['Service-Worker-Allowed'] = '/'   # doesnt seem necessary
     return response
 
 

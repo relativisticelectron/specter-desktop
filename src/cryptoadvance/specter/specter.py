@@ -762,9 +762,9 @@ class Specter:
             notifications = [
                 {
                     "title": f"Specter: {tx['category'].capitalize()} Transaction of wallet {tx['wallet_alias']}",
+                    "body": f"{tx['amount']}\n"
+                    f"sent to {tx['label']}",
                     "options": {
-                        "body": f"{tx['amount']}\n"
-                        f"sent to {tx['label']}",
                         "timestamp": tx["time"],
                     },
                     "category": tx["category"],
