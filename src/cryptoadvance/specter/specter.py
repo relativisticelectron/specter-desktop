@@ -47,6 +47,7 @@ from .util.version import VersionChecker
 from .util.price_providers import update_price
 from .util.setup_states import SETUP_STATES
 from .util.tor import get_tor_daemon_suffix
+from .util import webpush_handler
 
 logger = logging.getLogger(__name__)
 
@@ -68,6 +69,7 @@ class Specter:
             os.makedirs(data_folder)
 
         self.data_folder = data_folder
+        self.webpush_db = []
 
         self.user_manager = UserManager(
             self
@@ -92,6 +94,7 @@ class Specter:
             bitcoind_path=self.bitcoind_path,
             internal_bitcoind_version=internal_bitcoind_version,
             data_folder=os.path.join(self.data_folder, "nodes"),
+            callback_on_zmq_event = self.callback_on_zmq_event
         )
 
         self.torbrowser_path = os.path.join(
@@ -705,6 +708,7 @@ class Specter:
                 self.bitcoind_path,
                 "mainnet",
                 "0.20.1",
+                callback_on_zmq_event=self.callback_on_zmq_event,
             )
             logger.info(f"persisting {internal_node} in migrate_old_node_format")
             write_node(
@@ -732,6 +736,7 @@ class Specter:
                 os.path.join(os.path.join(self.data_folder, "nodes"), "default.json"),
                 "BTC",
                 self,
+                callback_on_zmq_event=self.callback_on_zmq_event,
             )
             logger.info(f"persisting {node} in migrate_old_node_format")
             write_node(
@@ -740,6 +745,39 @@ class Specter:
             )
             del self.config["rpc"]
         self._save()
+
+
+    def callback_on_zmq_event(self, topic, body):
+        print(f'callback_on_zmq_event  {topic}')
+        if topic == 'hashtx':
+            txid = body.decode()
+            print(txid)
+
+            new_full_txlist = self.wallet_manager.full_txlist()
+            updated_txs = [tx for tx in new_full_txlist if tx["txid"] in txid]
+
+            #    updated_txs = [tx for tx in txlist if tx["txid"] == txid]
+            print(f'updated_txs  {updated_txs}')
+
+            notifications = [
+                {
+                    "title": f"Specter: {tx['category'].capitalize()} Transaction of wallet {tx['wallet_alias']}",
+                    "options": {
+                        "body": f"{tx['amount']}\n"
+                        f"sent to {tx['label']}",
+                        "timestamp": tx["time"],
+                    },
+                    "category": tx["category"],
+                    "isConfirmed": tx["confirmations"] > 0,
+                }
+                for tx in updated_txs
+            ]
+            
+            #print(f'notifications  {notifications}')
+            for notification in notifications:
+                #print(self.webpush_db, notification)                
+                webpush_handler.trigger_push_notifications_for_subscriptions(self.webpush_db, notification)
+            return notifications
 
 
 class SpecterConfiguration:

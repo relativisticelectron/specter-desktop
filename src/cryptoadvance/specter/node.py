@@ -16,7 +16,6 @@ from .rpc import (
 )
 import zmq, binascii
 from concurrent.futures import ThreadPoolExecutor
-from .util import webpush_handler
 
 logger = logging.getLogger(__name__)
 
@@ -83,15 +82,12 @@ class Node:
 
 
         self.buffered_zmq_messages = []
+        self.on_zmq_event = manager.callback_on_zmq_event
         self.zmq_sockets = self.get_zmq_sockets()
         self.listener_zmq_recv_message()
         # Requires that these lines are in bitcoin.conf        
-        # zmqpubrawblock=tcp://127.0.0.1:29000
-        # zmqpubrawtx=tcp://127.0.0.1:29000
         # zmqpubhashtx=tcp://127.0.0.1:29000
-        # zmqpubhashblock=tcp://127.0.0.1:29000
 
-        self.webpush_db = []
 
 
 
@@ -179,15 +175,19 @@ class Node:
             while True:
                 for socket in self.zmq_sockets:
                     topic, body = self._decode_zmq_multipart_message(socket.recv_multipart())   # recv_multipart waits for an event.
-                    self.on_zmq_event(topic, body)
+                    print(f'call self.on_zmq_event  {self.on_zmq_event}')
+                    if self.on_zmq_event:
+                        self.on_zmq_event(topic, body)
         self.thread_executor = ThreadPoolExecutor(1)
         self.thread_executor.submit(zmq_recv_message)
 
-    def on_zmq_event(self, topic, body):
-        print(topic, body)
-        #self.buffered_zmq_messages.append((topic, body))
-        print(self.webpush_db)
-        webpush_handler.trigger_push_notifications_for_subscriptions(self.webpush_db, topic, body)
+
+
+    # def on_zmq_event(self, topic, body):
+    #     #print(topic, body)
+    #     #self.buffered_zmq_messages.append((topic, body))
+    #     webpush_handler.trigger_push_notifications_for_subscriptions(self.webpush_db, topic, body)
+
 
     def read_and_clear_buffered_zmq_messages(self):
         buffer = self.buffered_zmq_messages

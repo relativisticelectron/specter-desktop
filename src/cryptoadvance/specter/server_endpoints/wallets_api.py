@@ -94,6 +94,7 @@ def fees():
 
 
 
+
 @app.route("/api/push-subscriptions", methods=["POST"])
 @login_required
 def create_push_subscription():
@@ -106,7 +107,7 @@ def create_push_subscription():
         'error':'No subscription_json in subscription request'
     })
 
-    app.specter.node.webpush_db.append(subscription_json)
+    app.specter.webpush_db.append(subscription_json)
     print(f'create_push_subscription {subscription_json}')
     return jsonify({
         "status": "success"
@@ -114,11 +115,10 @@ def create_push_subscription():
 
 
 
-
 @app.route("/trigger-push-notifications", methods=["GET"])
 @login_required
 def trigger_push_notifications():
-    webpush_handler.trigger_push_notifications_for_subscriptions(app.specter.node.webpush_db, 'topic', 'body')
+    webpush_handler.trigger_push_notifications_for_subscriptions(app.specter.webpush_db, 'topic', 'body')
     return jsonify({
         "status": "success", 
     })

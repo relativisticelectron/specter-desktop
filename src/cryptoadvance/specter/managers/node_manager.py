@@ -26,6 +26,7 @@ class NodeManager:
         bitcoind_path="",
         internal_bitcoind_version="",
         data_folder="",
+        callback_on_zmq_event=None,
     ):
         self.data_folder = data_folder
         self._active_node = active_node
@@ -33,6 +34,7 @@ class NodeManager:
         self.only_tor = only_tor
         self.bitcoind_path = bitcoind_path
         self.internal_bitcoind_version = internal_bitcoind_version
+        self.callback_on_zmq_event = callback_on_zmq_event
         self.update(data_folder)
         internal_nodes = [
             node for node in self.nodes.values() if not node.external_node
@@ -160,6 +162,7 @@ class NodeManager:
             fullpath = os.path.join(self.data_folder, "%s.json" % node_alias)
             i += 1
 
+
         node = Node(
             name,
             node_alias,
@@ -201,6 +204,7 @@ class NodeManager:
             i += 1
         if not datadir:
             datadir = os.path.join(self.data_folder, f"{node_alias}/.bitcoin-{network}")
+
 
         node = InternalNode(
             name,
