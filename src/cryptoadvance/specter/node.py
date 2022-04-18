@@ -16,6 +16,7 @@ from .rpc import (
 )
 import zmq, binascii
 from concurrent.futures import ThreadPoolExecutor
+from .util import webpush_handler
 
 logger = logging.getLogger(__name__)
 
@@ -90,6 +91,8 @@ class Node:
         # zmqpubhashtx=tcp://127.0.0.1:29000
         # zmqpubhashblock=tcp://127.0.0.1:29000
 
+        self.webpush_db = []
+
 
 
 
@@ -148,7 +151,7 @@ class Node:
     def get_zmq_sockets(self):
         if not self.rpc: return
         zmqnotifications = self.rpc.getzmqnotifications()  # Example:  [{'type': 'pubhashblock', 'address': 'tcp://127.0.0.1:29000', 'hwm': 1000}, {'type': 'pubhashtx', 'address': 'tcp://127.0.0.1:29000', 'hwm': 1000}, {'type': 'pubrawblock', 'address': 'tcp://127.0.0.1:29000', 'hwm': 1000}, {'type': 'pubrawtx', 'address': 'tcp://127.0.0.1:29000', 'hwm': 1000}]
-        subcriber_topics = ['pubhashtx', 'pubhashblock']
+        subcriber_topics = ['pubhashtx']
         available_subcriber_topics = [d for d in zmqnotifications if d['type'] in subcriber_topics]
         # print(zmqnotifications, available_subcriber_topics)
 
@@ -181,7 +184,10 @@ class Node:
         self.thread_executor.submit(zmq_recv_message)
 
     def on_zmq_event(self, topic, body):
-        self.buffered_zmq_messages.append((topic, body))
+        print(topic, body)
+        #self.buffered_zmq_messages.append((topic, body))
+        print(self.webpush_db)
+        webpush_handler.trigger_push_notifications_for_subscriptions(self.webpush_db, topic, body)
 
     def read_and_clear_buffered_zmq_messages(self):
         buffer = self.buffered_zmq_messages

@@ -325,8 +325,21 @@
 	{% block scripts %}
 		<script>
 			{% include "includes/language/language_js.jinja" %}
-			{% include "includes/notifications.js" %}
 		</script>
+
+		<script 
+			type="text/javascript" 
+			src="/static/register_service_worker.js">
+		</script>
+		<script 
+			type="text/javascript">
+			registerServiceWorker(
+				"/service_worker.js",
+				"BDzPYM_DsEgNhULPftXhDtVRrmB9n6-nEevaUI7xALoWQWnX2eZ86y9trUVnlzikph9i76P-P4WOlZveNsWwWpg",
+				"/api/push-subscriptions",
+				"{{ csrf_token() }}"
+			);
+		</script>		
 	{% endblock %}
 	</body>
 </html>

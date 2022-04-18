@@ -17,6 +17,7 @@ from flask import flash, jsonify, redirect, request, url_for
 from flask_babel import lazy_gettext as _
 from flask_babel import lazy_gettext
 from flask_login import current_user, login_required
+from flask import make_response, send_from_directory
 from werkzeug.wrappers import Response
 
 from ..helpers import bcur2base64
@@ -29,6 +30,7 @@ from ..util.descriptor import Descriptor
 from ..util.fee_estimation import FeeEstimationResultEncoder, get_fees
 from ..util.price_providers import get_price_at
 from ..util.tx import decoderawtransaction
+from ..util import webpush_handler
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +89,50 @@ def get_scantxoutset_status():
 @login_required
 def fees():
     return json.dumps(get_fees(app.specter, app.config), cls=FeeEstimationResultEncoder)
+
+
+
+
+
+@app.route("/api/push-subscriptions", methods=["POST"])
+@login_required
+def create_push_subscription():
+    json_data = request.get_json()
+    subscription_json = json.loads(json_data.get('subscription_json'))
+
+    if not subscription_json:
+        return jsonify({
+        "status": "fail",
+        'error':'No subscription_json in subscription request'
+    })
+
+    app.specter.node.webpush_db.append(subscription_json)
+    print(f'create_push_subscription {subscription_json}')
+    return jsonify({
+        "status": "success"
+    })
+
+
+
+
+@app.route("/trigger-push-notifications", methods=["GET"])
+@login_required
+def trigger_push_notifications():
+    webpush_handler.trigger_push_notifications_for_subscriptions(app.specter.node.webpush_db, 'topic', 'body')
+    return jsonify({
+        "status": "success", 
+    })
+
+@app.route('/service_worker.js')    # from https://stackoverflow.com/questions/46371077/how-to-register-a-service-worker-using-python-flask-templates
+@login_required
+def service_worker():
+    response=make_response(
+                     send_from_directory('static', filename='service_worker.js'))
+    #change the content header file. Can also omit; flask will handle correctly.
+    response.headers['Content-Type'] = 'text/javascript'
+    return response
+
+
 
 
 @app.route("/get_fee/<blocks>")

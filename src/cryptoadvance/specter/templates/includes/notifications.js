@@ -89,7 +89,19 @@ function run_scheduled(){
 setInterval(run_scheduled, 2000);
 
 
+if (!('serviceWorker' in navigator)) { 
+    // Service Worker isn't supported on this browser, disable or hide UI. 
+    console.log("Service Worker isn't supported on this browser, disable or hide UI. ");
+    //return; 
+  }
+  
+  if (!('PushManager' in window)) { 
+    // Push isn't supported on this browser, disable or hide UI. 
+    console.log("Service Worker isn't supported on this browser, disable or hide UI. ");
+    //return; 
+  }
 
 
 
 
+  
