@@ -258,6 +258,7 @@ class WalletImporter:
         if "recv_descriptor" in wallet_data:
             wallet_name = wallet_data.get("name", "Imported Wallet")
             recv_descriptor = wallet_data.get("recv_descriptor", None)
+            cosigners_types = wallet_data.get("devices", [])
 
         # Electrum multisig
         elif "x1/" in wallet_data:

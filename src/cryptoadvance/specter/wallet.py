@@ -896,7 +896,7 @@ class Wallet:
             "recv_descriptor": self.recv_descriptor,
             "change_descriptor": self.change_descriptor,
             "keys": [key.json for key in self.keys],
-            "devices": [device.alias for device in self.devices],
+            "devices": [{"type": d.device_type, "label": d.name} for d in self.devices],
             "sigs_required": self.sigs_required,
             "blockheight": self.blockheight,
         }
