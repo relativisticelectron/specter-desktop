@@ -1,8 +1,10 @@
 import logging
 from flask import current_app as app
+from flask import render_template
 from cryptoadvance.specter.services.service import Service, devstatus_alpha
 from cryptoadvance.specter.specter_error import SpecterError
 from cryptoadvance.specter.wallet import Wallet
+from .console import Console
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +18,12 @@ class DevhelpService(Service):
     has_blueprint = True
     blueprint_module = "cryptoadvance.specterext.devhelp.controller"
     devstatus = devstatus_alpha
+    console = Console()
+    console.updateNamespace(
+        {
+            "app": app,
+        }
+    )
 
     sort_priority = 2
 
@@ -43,3 +51,7 @@ class DevhelpService(Service):
     def set_associated_wallet(cls, wallet: Wallet):
         """Set the Specter `Wallet` that is currently associated with Swan auto-withdrawals"""
         cls.update_current_user_service_data({cls.SPECTER_WALLET_ALIAS: wallet.alias})
+
+    @classmethod
+    def get_html_inject_in_basejinja(cls):
+        return render_template("devhelp/html_inject_in_basejinja.jinja")
