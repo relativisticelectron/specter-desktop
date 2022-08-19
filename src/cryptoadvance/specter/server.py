@@ -24,6 +24,7 @@ from .hwi_server import hwi_server
 from .services.callbacks import after_serverpy_init_app
 from .specter import Specter
 from .util.specter_migrator import SpecterMigrator
+from .notifications.notification_manager import NotificationManager
 
 logger = logging.getLogger(__name__)
 
@@ -111,7 +112,7 @@ def create_app(config=None):
     return app
 
 
-def init_app(app: SpecterFlask, hwibridge=False, specter=None):
+def init_app(app: SpecterFlask, hwibridge=False, specter=None, **kwargs):
     """see blogpost 19nd Feb 2020"""
 
     # Configuring a prefix for the app
@@ -149,6 +150,16 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
     specter.service_manager = ServiceManager(
         specter=specter, devstatus_threshold=app.config["SERVICES_DEVSTATUS_THRESHOLD"]
     )
+
+    specter.notification_manager = NotificationManager(
+        specter.user_manager,
+        kwargs.get("host", "127.0.0.1"),
+        app.config["PORT"],
+        app.config["CERT"],
+        app.config["KEY"],
+    )
+    for user in specter.user_manager.users:
+        specter.notification_manager.register_user_ui_notifications(user.id)
 
     login_manager = LoginManager()
     login_manager.session_protection = app.config.get("SESSION_PROTECTION", "strong")

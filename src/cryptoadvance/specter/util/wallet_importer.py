@@ -1,6 +1,5 @@
 import json
 import logging
-import requests
 from cryptoadvance.specter.managers.wallet_manager import WalletManager
 
 from cryptoadvance.specter.specter_error import SpecterError
@@ -10,8 +9,8 @@ from embit.descriptor import Key as DescriptorKey
 from embit.descriptor.arguments import AllowedDerivation
 from embit.liquid.descriptor import LDescriptor
 from cryptoadvance.specter.key import Key
-from flask import flash
 from flask_babel import lazy_gettext as _
+from ..notifications.current_flask_user import flash
 
 logger = logging.getLogger(__name__)
 

@@ -15,7 +15,7 @@ from cryptoadvance.specter.commands.psbt_creator import PsbtCreator
 from cryptoadvance.specter.wallet import Wallet
 from flask import Blueprint, stream_with_context
 from flask import current_app as app
-from flask import flash, jsonify, redirect, request, url_for
+from flask import jsonify, redirect, request, url_for
 from flask_babel import lazy_gettext as _
 from flask_babel import lazy_gettext
 from flask_login import current_user, login_required
@@ -32,6 +32,8 @@ from ..util.fee_estimation import FeeEstimationResultEncoder, get_fees
 from ..util.price_providers import get_price_at
 from ..util.tx import decoderawtransaction
 from embit.descriptor.checksum import add_checksum
+from ..notifications.current_flask_user import flash
+from ..helpers import robust_json_dumps
 
 logger = logging.getLogger(__name__)
 
@@ -108,6 +110,16 @@ def fees():
 def fees_old(blocks):
     """Is this endpoint even used? It has been migrated from controller.py and renamed to fees_old"""
     return app.specter.estimatesmartfee(int(blocks))
+
+
+@wallets_endpoint_api.route("/get_websockets_info/", methods=["GET"])
+@login_required
+def get_websockets_info():
+    return json.dumps(
+        {
+            "user_token": app.specter.user_manager.get_user().websocket_token,
+        }
+    )
 
 
 @wallets_endpoint_api.route("/wallet/<wallet_alias>/combine/", methods=["POST"])
@@ -597,7 +609,10 @@ def addresses_list_csv(wallet_alias):
         return response
     except Exception as e:
         handle_exception(e)
-        flash(_("Failed to export addresses list. Error: {}").format(e), "error")
+        flash(
+            _("Failed to export addresses list. Error: {}").format(e),
+            "error",
+        )
         return redirect(url_for("index"))
 
 

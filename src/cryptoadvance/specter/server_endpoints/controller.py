@@ -3,10 +3,13 @@ import random, traceback
 from time import time
 from flask_wtf.csrf import CSRFError
 from werkzeug.exceptions import MethodNotAllowed, NotFound
-from flask import render_template, request, redirect, url_for, flash, g
+from flask import render_template, request, redirect, url_for, g
 from flask_babel import lazy_gettext as _
+from ..notifications.current_flask_user import flash
 from ..specter_error import SpecterError, ExtProcTimeoutException
 from pathlib import Path
+import json
+from flask_login import current_user, login_required
 
 env_path = Path(".") / ".flaskenv"
 from dotenv import load_dotenv
@@ -29,6 +32,10 @@ from .setup import setup_endpoint
 from .wallets import wallets_endpoint
 from .wallets_api import wallets_endpoint_api
 from ..rpc import RpcError
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 # Services live in their own separate path
 from cryptoadvance.specter.services.controller import services_endpoint
@@ -113,7 +120,7 @@ def server_error_timeout(e):
         _(
             "Bitcoin Core is not coming up in time. Maybe it's just slow but please check the logs below"
         ),
-        "warn",
+        "warning",
     )
     return redirect(
         url_for(
@@ -220,6 +227,21 @@ if app.config["SPECTER_URL_PREFIX"] != "":
     @app.route(f"{app.config['SPECTER_URL_PREFIX']}/")
     def index_prefix():
         return redirect(url_for("welcome_endpoint.index"))
+
+
+@app.route("/websocket", websocket=True)
+def websocket():
+    logger.debug("websocket route called. This will start a new websocket connection.")
+    # this function will run forever. That is ok, because a stream is expected, similar to https://maxhalford.github.io/blog/flask-sse-no-deps/
+    #  flask.Response(stream(), mimetype='text/event-stream')
+    if app.specter.notification_manager.websockets_server:
+        app.specter.notification_manager.websockets_server.serve(request.environ)
+    else:
+        logger.warning(
+            "/websocket route accessed, but no websockets_server is initialized."
+        )
+    # returning a string solved some error message when the function ends: https://stackoverflow.com/questions/25034123/flask-value-error-view-function-did-not-return-a-response
+    return ""
 
 
 @app.route("/healthz/liveness")

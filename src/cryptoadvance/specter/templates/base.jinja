@@ -40,6 +40,9 @@
 			}
 		</style>
 		<script type="text/javascript" src="{{ url_for('static', filename='helpers.js') }}"></script>
+		<script>
+			{% include "includes/notifications.js" %}
+		</script>
 		{% block head %}
 		{% endblock %}
 	</head>
@@ -324,6 +327,7 @@
 			{% endif %}
 		</script>
 	{% endif %}
+	<!-- This scripts block is boing overwritten in /device -->
 	{% block scripts %}
 		<script>
 			{% include "includes/language/language_js.jinja" %}
