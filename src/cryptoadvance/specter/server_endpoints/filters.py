@@ -3,6 +3,7 @@ from flask import current_app as app
 from flask import Blueprint
 from jinja2 import pass_context
 from ..helpers import to_ascii20
+from ..util.common import satamount_formatted, btcamount_formatted
 
 filters_bp = Blueprint("filters", __name__)
 
@@ -25,6 +26,43 @@ def unique_len(context, arr):
 @filters_bp.app_template_filter("datetime")
 def timedatetime(context, s):
     return format(datetime.fromtimestamp(s), "%d.%m.%Y %H:%M")
+
+
+@pass_context
+@filters_bp.app_template_filter("average_of_attribute")
+def average_of_attribute(context, values, attribute):
+    dicts = [
+        getattr(value, attribute)
+        for value in values
+        if getattr(value, attribute) is not None
+    ]
+    return sum(dicts) / len(dicts) if dicts else None
+
+
+@pass_context
+@filters_bp.app_template_filter("btcunitamount_fixed_decimals")
+def btcunitamount_fixed_decimals(
+    context,
+    value,
+    maximum_digits_to_strip=7,
+    minimum_digits_to_strip=6,
+    enable_digit_spaces_for_counting=True,
+):
+    if app.specter.hide_sensitive_info:
+        return "#########"
+    if value is None:
+        return "Unknown"
+    if value < 0 and app.specter.is_liquid:
+        return "Confidential"
+    if app.specter.unit == "sat":
+        return satamount_formatted(value)
+
+    return btcamount_formatted(
+        value,
+        maximum_digits_to_strip=maximum_digits_to_strip,
+        minimum_digits_to_strip=minimum_digits_to_strip,
+        enable_digit_spaces_for_counting=enable_digit_spaces_for_counting,
+    )
 
 
 @pass_context
