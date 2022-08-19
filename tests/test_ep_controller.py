@@ -284,8 +284,10 @@ swan_endpoint.static
 swan_endpoint.update_autowithdrawal
 swan_endpoint.withdrawals
 wallets_endpoint.addresses
+wallets_endpoint.addresses_with_type
 wallets_endpoint.failed_wallets
 wallets_endpoint.history
+wallets_endpoint.history_tx_list_type
 wallets_endpoint.import_psbt
 wallets_endpoint.new_wallet
 wallets_endpoint.new_wallet_type
@@ -310,6 +312,7 @@ wallets_endpoint_api.generatemnemonic
 wallets_endpoint_api.get_label
 wallets_endpoint_api.get_scantxoutset_status
 wallets_endpoint_api.get_websockets_info
+wallets_endpoint_api.global_search
 wallets_endpoint_api.is_address_mine
 wallets_endpoint_api.pending_psbt_list
 wallets_endpoint_api.rescan_progress

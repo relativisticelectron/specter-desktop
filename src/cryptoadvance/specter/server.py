@@ -25,6 +25,7 @@ from .services.callbacks import after_serverpy_init_app
 from .specter import Specter
 from .util.specter_migrator import SpecterMigrator
 from .notifications.notification_manager import NotificationManager
+from .global_search import GlobalSearchTree
 
 logger = logging.getLogger(__name__)
 
@@ -145,6 +146,9 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None, **kwargs):
 
     # HWI
     specter.hwi = HWIBridge()
+
+    # Global Search
+    specter.global_search_tree = GlobalSearchTree()
 
     # ServiceManager will instantiate and register blueprints for extensions
     specter.service_manager = ServiceManager(
