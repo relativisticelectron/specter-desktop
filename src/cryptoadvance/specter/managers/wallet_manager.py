@@ -413,7 +413,7 @@ class WalletManager:
                 )
             ]
             # Outer comprehension: ...from each wallet, each returning their own tx list.
-            for wallet in self.wallets.values()
+            for wallet in list(self.wallets.values())
         ]
         result = []
         for txlist in txlists:
