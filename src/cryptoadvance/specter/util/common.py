@@ -43,7 +43,8 @@ def btcamount_formatted(
     minimum_digits_to_strip=6,
     enable_digit_formatting=True,
 ):
-    value = round(float(value), 8)
+    from decimal import Decimal
+    value = Decimal(value).quantize(Decimal("0.00000001"))
     formatted_amount = "{:,.8f}".format(value)
 
     count_digits_that_can_be_stripped = 0
