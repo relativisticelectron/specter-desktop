@@ -1,6 +1,7 @@
 import logging
 import re
 from datetime import datetime
+from decimal import Decimal
 import json
 from flask_babel.speaklater import LazyString
 
@@ -34,7 +35,9 @@ def replace_substring(text, start_position, replace_length, new_str):
 
 
 def satamount_formatted(value):
-    return "{:,.0f}".format(round(float(value) * 1e8))
+    # TODO: amounts should be handled internally only as integer sats; no floats or str,
+    # except for when formatting for display.
+    return "{:,.0f}".format(Decimal(value * 1e8).quantize(Decimal("0.00000001")))
 
 
 def btcamount_formatted(
@@ -43,7 +46,6 @@ def btcamount_formatted(
     minimum_digits_to_strip=6,
     enable_digit_formatting=True,
 ):
-    from decimal import Decimal
     value = Decimal(value).quantize(Decimal("0.00000001"))
     formatted_amount = "{:,.8f}".format(value)
 
