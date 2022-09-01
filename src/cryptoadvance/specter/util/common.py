@@ -37,7 +37,7 @@ def replace_substring(text, start_position, replace_length, new_str):
 def satamount_formatted(value):
     # TODO: amounts should be handled internally only as integer sats; no floats or str,
     # except for when formatting for display.
-    return "{:,d}".format(int(value * 1e8))
+    return "{:,d}".format(int(Decimal(value)*Decimal(1e8)))
 
 
 def btcamount_formatted(
