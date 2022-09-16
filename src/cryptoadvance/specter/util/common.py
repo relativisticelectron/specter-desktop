@@ -20,12 +20,16 @@ def str2bool(my_str):
 
 def camelcase2snake_case(name):
     """If you pass DeviceManager it returns device_manager"""
+    if not name:
+        return name
     pattern = re.compile(r"(?<!^)(?=[A-Z])")
     name = pattern.sub("_", name).lower()
     return name
 
 
 def snake_case2camelcase(word):
+    if not word:
+        return word
     return "".join(x.capitalize() or "_" for x in word.split("_"))
 
 

@@ -68,15 +68,18 @@ class ExtGen:
             comment_start_string="<#",
             comment_end_string="#>",
         )
-        self.jinja_env.filters["camelcase"] = snake_case2camelcase
         self.env = Environment(loader=loader, trim_blocks=True)
-        self.env.filters["camelcase"] = snake_case2camelcase
         self.sd_env = Environment(
             loader=GithubUrlLoader(
                 base_url="https://raw.githubusercontent.com/cryptoadvance/specter-desktop/",
                 branch=self.branch,
             )
         )
+
+        # add filters to environments
+        for env in [self.env, self.jinja_env, self.sd_env]:
+            env.filters["camelcase"] = snake_case2camelcase
+            env.filters["snakecase"] = camelcase2snake_case
 
     def env_for_template(self, template):
         """chooses the right env for the template"""
