@@ -39,6 +39,7 @@ from .rpc import (
 )
 from .managers.service_manager import ServiceManager
 from .services.service import devstatus_alpha, devstatus_beta, devstatus_prod
+from .services import callbacks
 from .specter_error import ExtProcTimeoutException, SpecterError
 from .tor_daemon import TorDaemonController
 from .user import User
@@ -157,6 +158,8 @@ class Specter:
         for node in self.node_manager.nodes.values():
             if not node.external_node:
                 node.stop()
+
+        self.service_manager.execute_ext_callbacks(callbacks.flash, signum, frame)
 
         logger.info("Closing Specter after cleanup")
         # For some reason we need to explicitely exit here. Otherwise it will hang

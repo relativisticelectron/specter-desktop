@@ -2,7 +2,7 @@ import json
 import logging
 import os
 import time
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from cryptoadvance.specter.helpers import is_testnet
@@ -19,6 +19,7 @@ from cryptoadvance.specter.util.wallet_importer import WalletImporter
 from conftest import instantiate_bitcoind_controller
 
 
+@patch("cryptoadvance.specter.util.wallet_importer.flash", print)
 @pytest.mark.slow
 def test_WalletManager(
     docker,
