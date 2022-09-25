@@ -27,13 +27,13 @@ from ..server_endpoints import flash
 from ..server_endpoints.filters import assetlabel
 from ..specter_error import SpecterError, handle_exception
 from ..util.base43 import b43_decode
+from ..util.common import robust_json_dumps
 from ..util.descriptor import Descriptor
 from ..util.fee_estimation import FeeEstimationResultEncoder, get_fees
 from ..util.mnemonic import generate_mnemonic
 from ..util.price_providers import get_price_at
 from ..util.tx import decoderawtransaction
 from ..wallet import Wallet
-from ..util.common import robust_json_dumps
 
 logger = logging.getLogger(__name__)
 
