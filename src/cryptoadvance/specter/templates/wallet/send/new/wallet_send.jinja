@@ -26,24 +26,25 @@
 		<input type="hidden" name="recipient_dicts"  id="recipient_dicts" value=""/>  
 		<h1 class="padded">{{ _("Create Transaction") }}</h1>
 		<div style="display: flex; justify-content: center; margin-bottom: 15px">
-			<div>{{ _("Available funds:") }} {{wallet.amount_available | btcunitamount}}
-				{% if specter.unit == 'sat' %}
-					sats
-				{% else %}
-					{% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC
-				{% endif %}<br>
-				{% if specter.price_check %}
-					<span class="note">{{ wallet.amount_available | altunit }}</span>
-				{% endif %}
+			<div>{{ _("Available funds:") }} 
+				<span id="wallet-amount_available"></span>
+				<span id="wallet-amount_available-price"></span>
+				<script>
+					document.getElementById("wallet-amount_available").innerHTML = formatBtcAmountAndUnit({{ wallet.amount_available }})
+					document.getElementById("wallet-amount_available-price").innerHTML = formatPrice('{{ wallet.amount_available }}')
+				</script>
 				{% if specter.is_liquid and wallet.balance.get("assets", {}) %}
 				<span>
 					<br>{{ _("Assets:") }}<br>
 					{% for asset in wallet.balance.get("assets",{}).keys() | sort %}
 						{% set balance = wallet.balance.get("assets",{}).get(asset, {}) %}
 						<span style="margin: 0 10px;">
-							{{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) | btcamount }}
+							<span id="is_liquid-{{ asset }}" style="margin: 0 10px;"></span>
 							<asset-label data-asset="{{asset}}" data-label="{{asset | assetlabel}}"></asset-label>
 						</span>
+						<script>
+							document.getElementById("is_liquid-{{ asset }}").innerHTML = formatBtcAmount({{ (balance.get("trusted", 0) + balance.get("untrusted_pending", 0) + balance.get("immature", 0)) }})
+						</script>													
 					{% endfor %}
 				</span>
 				{% endif %}
@@ -95,11 +96,11 @@
 			{% include "includes/tx-data.html" %}
 			{% include "includes/explorer-link.html" %}
 			{% include "includes/tx-table.html" %}
-			{% include "includes/coin_selection.html" %}
+			{% include "includes/coin_selection.html" %}		
 			<coin-selection  
 				id="coinselection-webcomponent"
 				wallet-alias="{{wallet.alias}}"
-				spendable-amount='{{ wallet.full_available_balance | btcamount }}'
+				spendable-amount='{{ wallet.full_available_balance }}'
 				is-liquid="{{specter.is_liquid}}"
 				selected-coins="{{ selected_coins }}">
 			</coin-selection>
@@ -169,11 +170,11 @@
 		var assetBalances = {
 			"btc": {
 				"balance": {{ wallet.full_available_balance }},
-				"label": "{% if specter.is_testnet %}t{%endif%}{% if specter.is_liquid %}L{%endif%}BTC",
+				"label": formatUnitLabel('BTC'),
 			},
 			"sat": {
 				"balance": Math.round({{ wallet.full_available_balance*1e8 }}),
-				"label": "sat",
+				"label": formatUnitLabel('sat'),
 			},
 		{% for asset in wallet.balance.get("assets",{}).keys() | sort %}
 			"{{asset}}": {
@@ -584,18 +585,8 @@
 				let result = await send_request(url, 'POST', "{{ csrf_token() }}", formData);
 				console.log(result);
 				if (result.success) {
-					let psbt = result.psbt;
-					let fees = parseInt(psbt.fee * 1e8)
-					document.getElementById('calculated_tx_fee').innerText = `: ${fees} sats`;
-					if('{{ specter.price_check }}' == 'True'){
-						let altRate = parseFloat('{{ specter.alt_rate }}');
-						let altSymbol = '{{ specter.alt_symbol }}';
-						let altAmount = parseFloat((altRate * fees / 1e8).toFixed(2))
-						if (!isNaN(altAmount) && (altSymbol && altRate)) {
-							document.getElementById('calculated_tx_fee').innerText = `: ${fees} sats (${altAmount}${altSymbol})`;
-						}
-					}
-					return fees;
+					document.getElementById('calculated_tx_fee').innerHTML = `: ${formatBtcAmountAndUnit(result.psbt.fee, 'sat')}${formatPrice(result.psbt.fee)}`; 
+					return parseInt(result.psbt.fee * 1e8);
 				} else {
 					document.getElementById('calculated_tx_fee').innerText = `: ${result.error}`;
 				}

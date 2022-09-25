@@ -3,7 +3,6 @@ from flask import current_app as app
 from flask import Blueprint
 from jinja2 import pass_context
 from ..helpers import to_ascii20
-from ..util.common import format_btc_amount_as_sats, format_btc_amount
 
 filters_bp = Blueprint("filters", __name__)
 
@@ -40,43 +39,6 @@ def average_of_attribute(context, values, attribute):
 
 
 @pass_context
-@filters_bp.app_template_filter("btcunitamount_fixed_decimals")
-def btcunitamount_fixed_decimals(
-    context,
-    value,
-    maximum_digits_to_strip=7,
-    minimum_digits_to_strip=6,
-    enable_digit_formatting=True,
-):
-    if app.specter.hide_sensitive_info:
-        return "#########"
-    if value is None:
-        return "Unknown"
-    if value < 0 and app.specter.is_liquid:
-        return "Confidential"
-    if app.specter.unit == "sat":
-        return format_btc_amount_as_sats(value)
-
-    return format_btc_amount(
-        value,
-        maximum_digits_to_strip=maximum_digits_to_strip,
-        minimum_digits_to_strip=minimum_digits_to_strip,
-        enable_digit_formatting=enable_digit_formatting,
-    )
-
-
-@pass_context
-@filters_bp.app_template_filter("btcamount")
-def btcamount(context, value):
-    if value is None:
-        return "Unknown"
-    if value < 0 and app.specter.is_liquid:
-        return "Confidential"
-    value = round(float(value), 8)
-    return "{:,.8f}".format(value).rstrip("0").rstrip(".")
-
-
-@pass_context
 @filters_bp.app_template_filter("btc2sat")
 def btc2sat(context, value):
     value = int(round(float(value) * 1e8))
@@ -92,43 +54,6 @@ def feerate(context, value):
     if value <= 1.02:
         value = 1
     return "{:,.2f}".format(value).rstrip("0").rstrip(".")
-
-
-@pass_context
-@filters_bp.app_template_filter("btcunitamount")
-def btcunitamount(context, value):
-    if app.specter.hide_sensitive_info:
-        return "#########"
-    if value is None:
-        return "Unknown"
-    if value < 0 and app.specter.is_liquid:
-        return "Confidential"
-    if app.specter.unit != "sat":
-        return btcamount(context, value)
-    value = float(value)
-    return "{:,.0f}".format(round(value * 1e8))
-
-
-@pass_context
-@filters_bp.app_template_filter("altunit")
-def altunit(context, value):
-    if app.specter.hide_sensitive_info:
-        return "########"
-    if value is None:
-        return "Can't be calculated"
-    if value < 0:
-        return "-"
-    if app.specter.price_check and (app.specter.alt_rate and app.specter.alt_symbol):
-        rate = (
-            "{:,.2f}".format(float(value) * float(app.specter.alt_rate))
-            .rstrip("0")
-            .rstrip(".")
-        )
-        if app.specter.alt_symbol in ["$", "£"]:
-            return app.specter.alt_symbol + rate
-        else:
-            return rate + app.specter.alt_symbol
-    return ""
 
 
 @pass_context

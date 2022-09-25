@@ -76,18 +76,17 @@
 		<div class="tx_info">
 			{% for i in range(psbt['address']|length) %}
 				<div style="word-break: break-all;">
+					{{ _("Sending") }} <b><span id="psbt-amount-{{i}}"></span><span id="psbt-price-{{i}}"></span></b>
 					{% if "asset" in psbt %}
-						{{ _("Sending") }} <b>{{ psbt["amount"][i] | btcamount }}</b> <asset-label data-asset="{{psbt['asset'][i]}}" data-label="{{psbt['asset'][i] | assetlabel}}"></asset-label>
-					{% else %}
-						{{ _("Sending") }} <b>{{ psbt["amount"][i] | btcunitamount }}</b>
-						{% if specter.unit == 'sat' %}
-							sats
-						{% else %}
-							{% if specter.is_testnet %}t{%endif%}BTC
-						{% endif %}
-						{% if specter.price_check %}
-							<span class="note">({{ psbt["amount"][i] | altunit }})</span>
-						{% endif %}
+						<script>
+							document.getElementById("psbt-amount-{{i}}").innerHTML = formatBtcAmount({{ psbt["amount"][i] }})
+						</script>
+						<asset-label data-asset="{{psbt['asset'][i]}}" data-label="{{psbt['asset'][i] | assetlabel}}"></asset-label>
+					{% else %}            
+						<script>
+							document.getElementById("psbt-amount-{{i}}").innerHTML = formatBtcAmountAndUnit({{ psbt["amount"][i] }});
+							document.getElementById("psbt-price-{{i}}").innerHTML = formatPrice('{{ psbt["amount"][i] }}');
+						</script>
 					{% endif %}
 					{{ _("to") }}<b>
 						{% set addr_label = wallet.getlabel(psbt['address'][i]) %}
@@ -114,8 +113,15 @@
 			<div class="toggle" id="tx_details" style="word-break: break-all;">
 				<br>
 				<h2 class="tx_details_header">{{ _("Transaction Info") }}</h2>
-				<p style="text-align: left; background-color: #131a24; padding: 10px; line-height: 2; border-radius: 15px;">
-					<b>{{ _("Total fee:") }}</b> {{ psbt['fee'] | btc2sat }} sats {% if specter.price_check %}<span class="note">&nbsp;({{ psbt['fee'] | altunit }})</span>{% endif %}<br>
+				<p style="text-align: left; background-color: var(--cmap-bg-address-is-not-mine); padding: 10px; line-height: 2; border-radius: 15px;">
+					<b>{{ _("Total fee:") }}</b>
+					<span id="totalfee-amount"></span>
+					<span id="totalfee-price"></span>
+					<script>
+						document.getElementById("totalfee-amount").innerHTML = formatBtcAmountAndUnit({{ psbt['fee'] }}, 'sat');
+						document.getElementById("totalfee-price").innerHTML = formatPrice('{{ psbt['fee'] }}');
+					</script>
+					<br>
 					<b>{{ _("Fee rate:") }}</b>
 					{% if 'tx_full_size' in psbt %}
 						{{ (psbt['fee'] / psbt['tx_full_size']) | feerate }} sat/vbyte<br>
@@ -129,9 +135,9 @@
 				</p>
 				<h2 class="tx_details_header">{{ _("Inputs") }} ({{psbt['inputs'] | length}})</h2>
 				{% for input in psbt['inputs'] %}
-					{% set bg_color = '#131a24' %}
+					{% set bg_color = 'var(--cmap-bg-address-is-not-mine)' %}
 					{% set address=input['address'] %}
-					{% set bg_color = '#925d07' if wallet.is_address_mine(address) else bg_color %}
+					{% set bg_color = 'var(--cmap-bg-address-is-mine)' if wallet.is_address_mine(address) else bg_color %}
 					<p class="tx_info" style="text-align: left; background-color: {{ bg_color }};">
 						<b style="margin: auto;">Input #{{loop.index0}}</b><br><br>
 						<b>{{ _("Transaction id:") }}</b><br>
@@ -145,17 +151,29 @@
 							<address-label data-address="{{ address }}" data-label="{{ addr_label }}" data-wallet="{{ wallet_alias }}"></address-label>
 							<br>
 						{% endif %}
+						<b>{{ _("Amount:") }}</b> 
+						<span id="psbt-inputs-{{loop.index0}}-amount"></span>
+						<span id="psbt-inputs-{{loop.index0}}-price"></span>
 						{% if specter.is_liquid %}
-							<b>{{ _("Amount:") }}</b> {{ input.get('float_amount') | btcamount }} <asset-label data-asset="{{input['asset']}}" data-label="{{input['asset'] | assetlabel}}"></asset-label>
+							<script>
+								document.getElementById("psbt-inputs-{{loop.index0}}-amount").innerHTML = [
+										formatBtcAmount({{ input.get('float_amount') }} ), 
+										`<asset-label data-asset="{{input['asset']}}" data-label="{{input['asset'] | assetlabel}}"></asset-label>`
+										].join(' ');
+								document.getElementById("psbt-inputs-{{loop.index0}}-price").innerHTML = '';
+							</script>							
 						{% else %}
-							<b>{{ _("Amount:") }}</b> {{ input.get('float_amount') | btcamount }} {% if input.get('float_amount') != None %} BTC {% endif %} {% if specter.price_check %} <span class="note">&nbsp;({{ input.get('float_amount') | altunit }})</span> {% endif %}
+							<script>
+								document.getElementById("psbt-inputs-{{loop.index0}}-amount").innerHTML = formatBtcAmountAndUnit({{ input.get('float_amount') }})
+								document.getElementById("psbt-inputs-{{loop.index0}}-price").innerHTML = formatPrice('{{ input.get('float_amount') }}');
+							</script>
 						{% endif %}
 					</p>
 				{% endfor %}
 				<h2 class="tx_details_header">{{ _("Outputs") }} ({{psbt['outputs']|length}})</h2>
 				{% for output in psbt['outputs'] %}
 					{% set address = output['address'] %}
-					{% set bg_color = '#154984' if output['is_mine'] else '#131a24' %}
+					{% set bg_color = 'var(--cmap-bg-address-is-mine)' if output['is_mine'] else 'var(--cmap-bg-address-is-not-mine)' %}
 					<p class="tx_info" style="text-align: left; background-color: {{ bg_color }};">
 						<b>{{ _("Output") }} #{{loop.index0}}</b> {% if output['is_change'] %}(Change){% endif %}<br><br>
 						{% set addr_label = wallet.getlabel(address) %}
@@ -167,14 +185,26 @@
 							<address-label data-address="{{ address }}" data-label="{{ addr_label }}" data-wallet="{{ wallet_alias }}"></address-label>
 							<br>
 						{% endif %}
+						<b>{{ _("Amount:") }}</b> 
+						<span id="psbt-outputs-{{loop.index0}}-amount"></span>
+						<span id="psbt-outputs-{{loop.index0}}-price"></span>
 						{% if specter.is_liquid %}
-							<b>{{ _("Amount:") }}</b> {{ output['float_amount']|btcamount }} <asset-label data-asset="{{output['asset']}}" data-label="{{output['asset'] | assetlabel}}"></asset-label>
+							<script>
+								document.getElementById("psbt-outputs-{{loop.index0}}-amount").innerHTML = [
+										formatBtcAmount({{ output.get('float_amount') }} ), 
+										`<asset-label data-asset="{{output['asset']}}" data-label="{{output['asset'] | assetlabel}}"></asset-label>`
+										].join(' ');
+								document.getElementById("psbt-outputs-{{loop.index0}}-price").innerHTML = '';
+							</script>							
 						{% else %}
-							<b>{{ _("Amount:") }}</b> {{ output['float_amount']|btcamount }} BTC {% if specter.price_check %}<span class="note">&nbsp;({{ output['float_amount'] | altunit }})</span>{% endif %}
+							<script>
+								document.getElementById("psbt-outputs-{{loop.index0}}-amount").innerHTML = formatBtcAmountAndUnit({{ output['float_amount'] }});
+								document.getElementById("psbt-outputs-{{loop.index0}}-price").innerHTML = formatPrice('{{ output['float_amount'] }}');
+							</script>
 						{% endif %}
 					</p>
 				{% endfor %}
-				{{ _("Raw PSBT:") }}<textarea id="raw-psbt" disabled style="background-color: #131a24;">{{ psbt['base64'] }}</textarea>
+				{{ _("Raw PSBT:") }}<textarea id="raw-psbt" disabled style="background-color: var(--cmap-bg-address-is-not-mine);">{{ psbt['base64'] }}</textarea>
 				<div class="row break-row-mobile" style="margin:auto">
 					<a id="download-psbt-btn" class="btn"
 					download="binary_{{ psbt['tx']['hash'] }}.psbt" href="data:application/octet-stream;base64;content-disposition=attachment,{{ psbt['base64'] }}">

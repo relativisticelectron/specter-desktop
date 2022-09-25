@@ -16,7 +16,8 @@ html, body{
     --cmap-border:        #506072;
     --cmap-border-highlight:#4B8CD8;
     --cmap-border-darker: #405062;
-    --cmap-bg-address-is-mine:#306d30;    
+    --cmap-bg-address-is-mine:#1c411c;    
+    --cmap-bg-address-is-not-mine:#131a24;    
 
     margin: 0;
     padding: 0;
@@ -1347,7 +1348,9 @@ input:checked + .slider:before {
 }
 .thousand-digits-in-sats-amount{
     color: #919191;
+    padding-left: 2px;
 }
 .last-digits-in-sats-amount{
     color: #797979;
+    padding-left: 2px;
 }
