@@ -33,6 +33,7 @@ from ..util.mnemonic import generate_mnemonic
 from ..util.price_providers import get_price_at
 from ..util.tx import decoderawtransaction
 from ..wallet import Wallet
+from ..util.common import robust_json_dumps
 
 logger = logging.getLogger(__name__)
 
