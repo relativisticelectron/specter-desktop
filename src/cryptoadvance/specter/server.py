@@ -156,6 +156,13 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
         specter=specter, devstatus_threshold=app.config["SERVICES_DEVSTATUS_THRESHOLD"]
     )
 
+    def service_manager_cleanup_on_exit(signum, frame):
+        return specter.service_manager.execute_ext_callbacks(
+            callbacks.cleanup_on_exit, signum, frame
+        )
+
+    specter.call_functions_at_cleanup_on_exit.append(service_manager_cleanup_on_exit)
+
     login_manager = LoginManager()
     login_manager.session_protection = app.config.get("SESSION_PROTECTION", "strong")
     login_manager.init_app(app)  # Enable Login
@@ -192,7 +199,9 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
             from cryptoadvance.specter.server_endpoints import controller
             from cryptoadvance.specter.services import controller as serviceController
 
-            if app.config.get("TESTING") and len(app.view_functions) <= 50:
+            if app.config.get("TESTING"):
+                logger.info(f"We have {len(app.view_functions)} view Functions")
+            if app.config.get("TESTING") and len(app.view_functions) <= 51:
                 # Need to force a reload as otherwise the import is skipped
                 # in pytest, the app is created anew for each test
                 # But we shouldn't do that if not necessary as this would result in
@@ -261,6 +270,7 @@ def init_app(app: SpecterFlask, hwibridge=False, specter=None):
 
     scheduler.init_app(app)
     scheduler.start()
+    specter.service_manager.add_required_services_to_users(specter.user_manager.users)
     specter.service_manager.execute_ext_callbacks(
         after_serverpy_init_app, scheduler=scheduler
     )
