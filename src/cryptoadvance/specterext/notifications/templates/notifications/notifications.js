@@ -325,8 +325,7 @@ var websocket = null;
 
 function connectWebsocket() {
     // get necessary info for the opening of the websocket
-    sendRequest("{{ url_for('notifications_endpoint.get_websockets_info') }}", 'GET', 
-                    "{{ csrf_token() }}").then(function (websocketsInfo) {
+    sendRequest("{{ url_for('notifications_endpoint.get_websockets_info') }}", 'GET').then(function (websocketsInfo) {
         // Create the websocket  
         var url = "{{ url_for('notifications_endpoint.websocket') }}";
         console.log(url)
@@ -337,7 +336,11 @@ function connectWebsocket() {
         websocket.onopen = function(e) {
             // Sends a message to the server, that does nothing, but enables the server to register the user_token to the websocket_client
             websocket.send(JSON.stringify({'user_token': userToken, "title": 'IGNORE_NOTIFICATION_TITLE'}));
-        
+
+            // set the api_permissions
+            sendUpdatedWebapiPermission()
+            setInterval(sendUpdatedWebapiPermission, 3000);
+                
             console.debug(`Websocket connection to ${url} is open`);		
         };
 
@@ -370,19 +373,8 @@ function connectWebsocket() {
         }; 
         
         
-        // send any initial message to deliver the user_token. Without it python cannot associate this connection to any user
-        sendUpdatedWebapiPermission()
-
     });		
-
-    
-
-
-
 }
-
-
-connectWebsocket()
 
 
 
@@ -390,10 +382,8 @@ connectWebsocket()
 /**
  * If a user is logged in then regularly check if the webapi notification permission was changed
  */
- if ('{{ current_user.username }}'){
-    setInterval(sendUpdatedWebapiPermission, 3000);
+if ('{{ current_user.username }}'){
+    connectWebsocket()
 }else{
     // no user logged in
 }
-
-    
