@@ -15,6 +15,9 @@ from cryptoadvance.specter.wallet import Wallet
 from flask_apscheduler import APScheduler
 from .notification_manager import NotificationManager
 from flask_login import current_user, AnonymousUserMixin
+from cryptoadvance.specter.services.service_encrypted_storage import (
+    ServiceUnencryptedStorageManager,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +37,7 @@ class NotificationsService(Service):
     sort_priority = 2
     optionality = ServiceOptionality.opt_out
     visible_in_sidebar = False
+    StorageManager = ServiceUnencryptedStorageManager
 
     def callback_after_serverpy_init_app(self, scheduler: APScheduler):
         """

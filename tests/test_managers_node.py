@@ -1,4 +1,3 @@
-from enum import auto
 import tempfile
 import time
 import tarfile

@@ -313,22 +313,46 @@ class ServiceManager:
             raise ExtensionException(f"No such plugin: '{plugin_id}'")
         return self._services[plugin_id]
 
-    def remove_all_services_from_user(self, user: User):
-        """
-        Clears User.services and `user_secret`; wipes the User's
-        ServiceEncryptedStorage.
-        """
-        # Don't show any Services on the sidebar for the admin user
-        user.services.clear()
-
-        # Reset as if we never had any encrypted storage
-        user.delete_user_secret(autosave=False)
-        user.save_info()
-
+    def delete_service_from_user(self, user: User, service_id: str, autosave=True):
+        "Removes the service for the user and deletes the stored data in the ServiceEncryptedStorage"
+        # remove the service from the sidebar
+        user.remove_service(service_id, autosave=autosave)
+        # delete the data in the ServiceEncryptedStorage
         if self.user_has_encrypted_storage(user=user):
+            ServiceEncryptedStorageManager.get_instance().remove_service_data(
+                user, service_id, autosave=autosave
+            )
+
+    def delete_services_with_encrypted_storage(
+        self, user: User, force_delete_all=False
+    ):
+        services_with_encrypted_storage = set(
+            [
+                service_id
+                for service_id in self.services
+                if self.get_service(service_id).StorageManager.__name__
+                == "ServiceEncryptedStorageManager"
+                or force_delete_all
+            ]
+        )
+
+        for service_id in services_with_encrypted_storage:
+            self.delete_service_from_user(user, service_id, autosave=True)
+
+        # if all services were deleted then delete user secret
+        services_that_were_not_deleted = (
+            set(self.services) - services_with_encrypted_storage
+        )
+        if services_that_were_not_deleted:
+            logger.debug(
+                f"Deleted services were {services_with_encrypted_storage}; not deleted were {services_that_were_not_deleted}"
+            )
+        else:
+            user.delete_user_secret(autosave=True)
             # Encrypted Service data is now orphaned since there is no
             # password. So wipe it from the disk.
             ServiceEncryptedStorageManager.get_instance().delete_all_service_data(user)
+            logger.debug(f"Deleted user secret and all service data")
 
     def add_required_services_to_users(self, users, force_opt_out=False):
         "Adds the mandatory and opt_out (only if no services activated for user) services to users"

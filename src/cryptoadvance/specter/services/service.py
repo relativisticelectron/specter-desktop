@@ -46,7 +46,7 @@ class Service:
     devstatus = devstatus_alpha
     optionality = ServiceOptionality.opt_in
     visible_in_sidebar = True
-    requires_user_password = False
+    StorageManager = ServiceEncryptedStorageManager
 
     def __init__(self, active, specter):
         if not hasattr(self, "id"):
@@ -63,22 +63,20 @@ class Service:
 
     @classmethod
     def set_current_user_service_data(cls, service_data: dict):
-        ServiceEncryptedStorageManager.get_instance().set_current_user_service_data(
+        cls.StorageManager.get_instance().set_current_user_service_data(
             service_id=cls.id, service_data=service_data
         )
 
     @classmethod
     def update_current_user_service_data(cls, service_data: dict):
-        ServiceEncryptedStorageManager.get_instance().update_current_user_service_data(
+        cls.StorageManager.get_instance().update_current_user_service_data(
             service_id=cls.id, service_data=service_data
         )
 
     @classmethod
     def get_current_user_service_data(cls) -> dict:
-        return (
-            ServiceEncryptedStorageManager.get_instance().get_current_user_service_data(
-                service_id=cls.id
-            )
+        return cls.StorageManager.get_instance().get_current_user_service_data(
+            service_id=cls.id
         )
 
     @classmethod

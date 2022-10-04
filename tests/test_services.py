@@ -15,6 +15,8 @@ from cryptoadvance.specter.services.service_encrypted_storage import (
     ServiceEncryptedStorage,
     ServiceEncryptedStorageError,
     ServiceEncryptedStorageManager,
+    ServiceUnencryptedStorage,
+    ServiceUnencryptedStorageManager,
 )
 from cryptoadvance.specter.managers.service_manager import ServiceManager
 from cryptoadvance.specter.user import User, hash_password
@@ -188,8 +190,18 @@ def test_remove_all_services_from_user(app_no_node: SpecterFlask, empty_data_fol
         # Can't test the actual values because they're encrypted, but the Service.id key is plaintext
         assert FakeService.id in data_on_disk
 
-        # Now remove all
-        app_no_node.specter.service_manager.remove_all_services_from_user(user)
+        # Now remove the encrypted ones
+        app_no_node.specter.service_manager.delete_services_with_encrypted_storage(
+            user, force_delete_all=False
+        )
+
+        # TODO
+        # check that the encrypted ones are deleted, but the others not
+
+        # Now remove ALL
+        app_no_node.specter.service_manager.delete_services_with_encrypted_storage(
+            user, force_delete_all=True
+        )
 
         # Verify data on disk; Bob's user should have his user_secret cleared.
         users_file = app_no_node.specter.user_manager.users_file

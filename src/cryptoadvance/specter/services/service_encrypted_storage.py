@@ -89,6 +89,16 @@ class ServiceEncryptedStorage(GenericDataManager):
         if autosave:
             self._save()
 
+    def remove_service_data(self, service_id: str, autosave: bool = True):
+        # Add or update fields; does not remove existing fields
+        if service_id not in self.data:
+            logger.warning(f"service_id {service_id} does not exist in self.data")
+            return
+
+        del self.data[service_id]
+        if autosave:
+            self._save()
+
     def get_service_data(self, service_id: str) -> dict:
         service_data = self.data.get(service_id, None)
         if service_data:
@@ -169,6 +179,9 @@ class ServiceEncryptedStorageManager(ConfigurableSingleton):
         user = self.user_manager.get_user()
         if user and user in self.storage_by_user:
             self.storage_by_user[user] = None
+
+    def remove_service_data(self, user: User, service_id: str, autosave: bool = True):
+        self.storage_by_user[user].remove_service_data(service_id, autosave=autosave)
 
     def delete_all_service_data(self, user: User):
         """Completely removes all data in the User's ServiceEncryptedStorage from memory and on-disk."""
