@@ -333,8 +333,8 @@ class ServiceManager:
             [
                 service_id
                 for service_id in self.services
-                if self.get_service(service_id).StorageManager.__name__
-                == "ServiceEncryptedStorageManager"
+                if self.get_service(service_id).StorageManager
+                == ServiceEncryptedStorageManager
                 or force_delete_all
             ]
         )
