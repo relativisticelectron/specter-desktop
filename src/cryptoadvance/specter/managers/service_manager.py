@@ -87,6 +87,9 @@ class ServiceManager:
             ServiceEncryptedStorageManager.configure_instance(
                 specter.data_folder, specter.user_manager
             )
+            ServiceUnencryptedStorageManager.configure_instance(
+                specter.data_folder, specter.user_manager
+            )
         except ConfigurableSingletonException as e:
             # Test suite triggers multiple calls; ignore for now.
             pass

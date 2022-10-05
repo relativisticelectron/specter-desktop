@@ -195,8 +195,28 @@ def test_remove_all_services_from_user(app_no_node: SpecterFlask, empty_data_fol
             user, force_delete_all=False
         )
 
-        # TODO
         # check that the encrypted ones are deleted, but the others not
+        for service_id in app_no_node.specter.service_manager.services:
+            service = app_no_node.specter.service_manager.get_service(service_id)
+            if service.StorageManager == ServiceEncryptedStorageManager:
+                # raise an error if there is still data
+                assert not bool(
+                    service.StorageManager.get_instance()
+                    .storage_by_user[user]
+                    .get_service_data(service_id)
+                )
+            elif service.StorageManager == ServiceUnencryptedStorageManager:
+                # raise an error if there is no data
+                if service.StorageManager.get_instance().storage_by_user.get(user):
+                    assert bool(
+                        service.StorageManager.get_instance()
+                        .storage_by_user[user]
+                        .get_service_data(service_id)
+                    )
+            else:
+                raise Exception(
+                    f"service.StorageManager {service.StorageManager} is not ServiceEncryptedStorageManager, or ServiceUnencryptedStorageManager"
+                )
 
         # Now remove ALL
         app_no_node.specter.service_manager.delete_services_with_encrypted_storage(
