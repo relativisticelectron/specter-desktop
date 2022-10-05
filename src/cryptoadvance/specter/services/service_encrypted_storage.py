@@ -136,6 +136,8 @@ class ServiceEncryptedStorageManager(ConfigurableSingleton):
     Requires a one-time configuration call on startup in the ServiceManager.
     """
 
+    _instance = None
+
     @classmethod
     def configure_instance(cls, data_folder, user_manager):
         super().configure_instance()
@@ -197,6 +199,8 @@ class ServiceEncryptedStorageManager(ConfigurableSingleton):
 
 
 class ServiceUnencryptedStorageManager(ServiceEncryptedStorageManager):
+    _instance = None
+
     def __init__(self, user_manager, data_folder):
         self.user_manager = user_manager
         self.data_folder = data_folder
