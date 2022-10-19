@@ -117,7 +117,7 @@
                 // check that we still need to do it
                 // just before the request
                 if(!overlayIsActive()){
-                    // showNotification("HWI is ready again", 10000);
+                    // Specter.common.showNotification("HWI is ready again", 10000);
                     return null;
                 }
                 console.log("Retrying enumerate...");
@@ -153,7 +153,7 @@
         console.log(result);
         document.getElementById('bitbox02-pairing-code').innerHTML = "";
         if(!overlayIsActive() && devicePath == null){
-            // showNotification("HWI is ready again", 10000);
+            // Specter.common.showNotification("HWI is ready again", 10000);
             // no need to proceed at all
             return null;
         }
@@ -175,7 +175,7 @@
             return null;
         }
         if(!overlayIsActive()){
-            // showNotification("HWI is ready again", 3000);
+            // Specter.common.showNotification("HWI is ready again", 3000);
             // no need to proceed at all
             return null;
         }
@@ -195,7 +195,7 @@
             return null;
         }
         if(!overlayIsActive()){
-            // showNotification("HWI is ready again", 3000);
+            // Specter.common.showNotification("HWI is ready again", 3000);
             // no need to proceed at all
             return null;
         }
@@ -215,7 +215,7 @@
             return null;
         }
         if(!overlayIsActive()){
-            // showNotification("HWI is ready again", 3000);
+            // Specter.common.showNotification("HWI is ready again", 3000);
             // no need to proceed at all
             return null;
         }

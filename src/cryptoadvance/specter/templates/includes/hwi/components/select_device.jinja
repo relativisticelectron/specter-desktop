@@ -108,7 +108,7 @@
             return null;
         }
         if(!overlayIsActive()){
-            // showNotification("HWI is ready again", 10000);
+            // Specter.common.showNotification("HWI is ready again", 10000);
             // no need to proceed at all
             return null;
         }
@@ -122,7 +122,7 @@
                 throw `{{ _("Failed to unlock device! Invalid PIN code?") }}`;
             }
         }
-        showNotification(device.type + ` {{ _("passphrase toggled successfully") }}`, 5000)
+        Specter.common.showNotification(device.type + ` {{ _("passphrase toggled successfully") }}`, 5000)
     }
 
     async function signMessage(deviceType, message, derivationPath, fingerprint=null){

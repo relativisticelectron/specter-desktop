@@ -7,9 +7,9 @@ function addKeys(data){
 	let candidates = data.split("\n");
 	candidates = candidates.filter(e=>!loaded.includes(e));
 	if(candidates.length == 0){
-		showNotification(`{{ _("No new keys are added.") }}`);
+		Specter.common.showNotification(`{{ _("No new keys are added.") }}`);
 	}else{
-		showNotification(`Added ${candidates.length} keys.`);
+		Specter.common.showNotification(`Added ${candidates.length} keys.`);
 	}
 	let final = candidates.concat(loaded);
 	keysarea.value = final.join("\n");
@@ -20,6 +20,6 @@ function setDeviceType(type){
 	if (deviceType != null && deviceType.value == "") {
 		deviceType.value = type;
 		let name = type[0].toUpperCase() + type.slice(1);
-		showNotification(`Device type changed to ${name}`);
+		Specter.common.showNotification(`Device type changed to ${name}`);
 	}
 }

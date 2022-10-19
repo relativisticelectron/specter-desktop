@@ -37,7 +37,6 @@ for (let functionName in mobileModule) {
 }
 
 // window.copyText = copyText // TODO
-// window.showNotification = showNotification // TODO
 // window.toggleMobileNav = toggleMobileNav // TODO
 
 window.addEventListener('load', (event) => {
@@ -67,7 +66,7 @@ document.addEventListener("notification", (e)=>{
 	if(!("timeout" in e.detail)){
 		e.detail.timeout = 3000;
 	}
-	showNotification(e.detail.message, e.detail.timeout);
+	Specter.common.showNotification(e.detail.message, e.detail.timeout);
 });
 
 document.addEventListener("updateAddressLabel", function (e) {

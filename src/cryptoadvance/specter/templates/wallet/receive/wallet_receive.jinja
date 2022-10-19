@@ -104,20 +104,18 @@
 					{% if device.wallet_export_type == 'file' %}
 						<a 
 						download="{{ wallet.name | ascii20 }}.txt"
+						id="download-{{ wallet.name | ascii20 }}.txt"
 						href="data:text/plain;charset=US-ASCII,{{ device.export_wallet(wallet) }}"
-						{% if device.device_type == 'coldcard' %}
-							onclick="showNotification(`{{ _("Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import from SD") }}`, 0)"
-						{% endif %}
 						class="btn centered padded">
 							{{ _("Save") }} {{ device.name }} {{ _("file") }}
 						</a>
 					{% elif device.wallet_export_type == 'qr' %}
-						<button onclick="hidePageOverlay();showPageOverlay('{{ device.alias }}_export_qr_code')" type="button" class="btn centered padded">{{ _("Show") }} {{ device.name }} {{ _("QR Code") }}</button>
+						<button id="button-{{ device.alias }}_export_qr_code" type="button" class="btn centered padded">{{ _("Show") }} {{ device.name }} {{ _("QR Code") }}</button>
 						<div id="{{ device.alias }}_export_qr_code" style="display: none;">
 							<h1>{{ _("Scan this with your") }} {{ device.name }} "{{ _("device") }} </h1>
 							<qr-code value="{{ device.export_wallet(wallet) }}" width="400" scalable></qr-code>
 							<br>
-							<button onclick="hidePageOverlay();showPageOverlay('new_wallet_devices_popup')" type="button" class="btn centered padded">{{ _("Back") }}</button>
+							<button id="back-button-{{ device.alias }}_export_qr_code" type="button" class="btn centered padded">{{ _("Back") }}</button>
 						</div>
 					{% endif %}
 				{% endif %}
@@ -135,13 +133,13 @@
 		</button>
 		{% include 'wallet/components/wallet_pdf.jinja' %}
 		<br>
-		<span id="advanced_pdf_export_toggle" style="cursor: pointer;" onclick="togglePDFExportAdvanced()">{{ _("Advanced") }} &#9654;</span>
+		<span id="advanced_pdf_export_toggle" style="cursor: pointer;">{{ _("Advanced") }} &#9654;</span>
 		<br>
 		<br>
 		<div style="margin: 0 auto;" class="center hidden" id="advanced_pdf_export_container">
 			<label style="font-size: 1em;"">{{ _("Use SLIP-132:") }}&nbsp;</label>
 			<label class="switch">
-				<input type="checkbox" id="use_slip_132_pdf" style="margin: auto;" onchange="toggleKeyDisplay()">
+				<input type="checkbox" id="use_slip_132_pdf" style="margin: auto;">
 				<span class="slider"></span>
 			</label><br><br>
 		</div>
@@ -162,7 +160,7 @@
 			<button type="button" class="btn centered padded" onclick="hidePageOverlay()" id="btn_continue">{{ _("Continue") }}</button>
 		{% endif %}
 	</div>
-	<script>
+	<script type="module">
 		function verifyQRCode(address, idx) {
 			document.getElementById('verify_address_qr_code_container').innerHTML = `<qr-code value="bitcoin:${address}?index=${idx}" width="256" scalable></qr-code>`;
 			showPageOverlay('verify_address_qr_code');
@@ -206,5 +204,39 @@
 				document.getElementById("address_qr").setAttribute("value", "bitcoin:{{ wallet.unconfidential_address }}");
 			}
 		}
+
+		document.getElementById("advanced_pdf_export_toggle").addEventListener("click", function() {
+					togglePDFExportAdvanced();
+				}) 
+		document.getElementById("use_slip_132_pdf").addEventListener("change", function() {
+					toggleKeyDisplay();
+				}) 
+
+
+
+
+		if (document.getElementById("download-{{ wallet.name | ascii20 }}.txt")){
+			document.getElementById("download-{{ wallet.name | ascii20 }}.txt").addEventListener("click", function() {
+						Specter.common.showNotification(`{{ _("Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import from SD") }}`, 0);
+					}) 
+		}
+		{% for device in wallet.devices %}
+			if (document.getElementById("button-{{ device.alias }}_export_qr_code")){
+				document.getElementById("button-{{ device.alias }}_export_qr_code").addEventListener("click", function() {
+							hidePageOverlay();
+							showPageOverlay('{{ device.alias }}_export_qr_code');
+						}) 
+			}
+
+			if (document.getElementById("back-button-{{ device.alias }}_export_qr_code")){
+				document.getElementById("back-button-{{ device.alias }}_export_qr_code").addEventListener("click", function() {
+							hidePageOverlay();
+							showPageOverlay('new_wallet_devices_popup');
+						}) 
+			}
+		{% endfor %}		
+
+
+
 	</script>
 {% endblock %}

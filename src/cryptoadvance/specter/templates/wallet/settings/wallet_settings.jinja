@@ -23,9 +23,9 @@
 	</style>
 	<br>
 	<nav class="row collapse-on-mobile">
-		<button type="button" id="info_settings_tab_btn" class="btn radio left checked" onclick="setSettingsView('info')"> {{ _("Wallet Info") }} </button>
-		<button type="button" id="export_settings_tab_btn" class="btn radio" onclick="setSettingsView('export')"> {{ _("Export") }} </button>
-		<button type="button" id="advanced_settings_tab_btn" class="btn radio right" onclick="setSettingsView('advanced')"> {{ _("Advanced") }} </button>
+		<button type="button" id="info_settings_tab_btn" class="btn radio left checked"> {{ _("Wallet Info") }} </button>
+		<button type="button" id="export_settings_tab_btn" class="btn radio"> {{ _("Export") }} </button>
+		<button type="button" id="advanced_settings_tab_btn" class="btn radio right"> {{ _("Advanced") }} </button>
 		<a href="javascript:void(0);" class="mobile-nav-icon" onclick="toggleMobileNav(this, `{{ url_for('static', filename='img/caret-down.svg') }}`, `{{ url_for('static', filename='img/caret-up.svg') }}`)">
 			<img style="width: 36px;" src="{{ url_for('static', filename='img/caret-down.svg') }}" class="svg-white"/>
 		</a>
@@ -109,15 +109,13 @@
 						{% if device.wallet_export_type == 'file' %}
 							<a 
 							download="{{ wallet.name | ascii20 }}.txt"
-							href="data:text/plain;charset=US-ASCII,{{ device.export_wallet(wallet) }}"
-							{% if device.device_type == 'coldcard' %}
-								onclick="showNotification(`{{ _('Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import from SD') }}`, 0)"
-							{% endif %}
+							id="{{ device.alias }}_export_file"
+							href="data:text/plain;charset=US-ASCII,{{ device.export_wallet(wallet) }}" 
 							class="btn centered padded">
 								Save {{ device.name }} file
 							</a>
 						{% elif device.wallet_export_type == 'qr' %}
-							<button onclick="showPageOverlay('{{ device.alias }}_export_qr_code')" type="button" class="btn centered padded">Show {{ device.name }} QR Code</button>
+							<button id="button-show-qr-code-{{ device.alias }}_export_file"   type="button" class="btn centered padded">Show {{ device.name }} QR Code</button>
 							<div id="{{ device.alias }}_export_qr_code" style="display: none;">
 								<h1>{{ _("Scan this with your") }} {{ device.name }} {{ _("device") }} </h1>
 								<qr-code value="{{ device.export_wallet(wallet) }}" width="400" scalable></qr-code>
@@ -153,7 +151,7 @@
 			{{ _("It is recommended that you print this backup and save it with each of your devices.") }}
 			</p>
 			<button id="pdf-wallet-download" type="button" class="btn centered padded" style="margin: 30px auto;">Open backup PDF</button>
-			<span id="advanced_pdf_export_toggle" style="cursor: pointer;" onclick="togglePDFExportAdvanced()">{{ _("Adjust PDF backup (advanced)") }} &#9654;</span>
+			<span id="advanced_pdf_export_toggle" style="cursor: pointer;">{{ _("Adjust PDF backup (advanced)") }} &#9654;</span>
 			<div style="margin: 20px;" class="center hidden" id="advanced_pdf_export_container">
 				<div class="row center">
 					<label style="font-size: 1em;">{{ _("Use SLIP-132 for xpubs in PDF:") }}&nbsp;</label>
@@ -333,7 +331,7 @@
 {% endblock %}
 
 {% block scripts %} 
-	<script type="text/javascript">
+	<script type="module">
 		
 		let uploader = document.getElementById('label-uploader');
 		uploader.addEventListener('upload', e => {
@@ -448,6 +446,32 @@
 	        scrolltoRescanBlockchain();
 	       	document.getElementById('blockchain-rescan').classList.add("animation-rescan")
 	    {% endif %}
+
+
+		{% for device in wallet.devices %}
+			if (document.getElementById("{{ device.alias }}_export_file")){
+				document.getElementById("{{ device.alias }}_export_file").addEventListener("click", function() {
+					Specter.common.showNotification(`{{ _('Import wallet file to your ColdCard: Settings -> Multisig Wallets -> Import from SD') }}`, 0);
+			}
+			if (document.getElementById("button-show-qr-code-{{ device.alias }}_export_file")){
+				document.getElementById("button-show-qr-code-{{ device.alias }}_export_file").addEventListener("click", function() {
+					showPageOverlay('{{ device.alias }}_export_qr_code');
+			}
+		{% endfor %}		
+
+		document.getElementById("info_settings_tab_btn").addEventListener("click", function() {
+					setSettingsView('info');
+				}) 
+		document.getElementById("export_settings_tab_btn").addEventListener("click", function() {
+					setSettingsView('export');
+				}) 
+		document.getElementById("advanced_settings_tab_btn").addEventListener("click", function() {
+					setSettingsView('advanced');
+				}) 
+		document.getElementById("advanced_pdf_export_toggle").addEventListener("click", function() {
+					togglePDFExportAdvanced();
+				}) 
+
 	</script>
 
 {% endblock %}

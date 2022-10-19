@@ -11,7 +11,7 @@ function copyText(value, msg) {
 		document.execCommand("copy");
 		selection.removeAllRanges();
 		document.getElementsByTagName("body")[0].removeChild(element);
-		showNotification(msg);
+		Specter.common.showNotification(msg);
 	}
 	catch (err) {
 		showError('Unable to copy text');
