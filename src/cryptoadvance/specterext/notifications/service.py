@@ -27,12 +27,12 @@ class NotificationsService(Service):
     desc = "Where a notifications grows bigger."
     has_blueprint = True
     blueprint_module = "cryptoadvance.specterext.notifications.controller"
-    devstatus = devstatus_alpha
+    devstatus = devstatus_prod
     isolated_client = False
 
     # TODO: As more Services are integrated, we'll want more robust categorization and sorting logic
     sort_priority = 2
-    optionality = ServiceOptionality.opt_in
+    optionality = ServiceOptionality.opt_out
     visible_in_sidebar = False
 
     def callback_after_serverpy_init_app(self, scheduler: APScheduler):
